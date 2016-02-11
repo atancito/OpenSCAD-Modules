@@ -2,13 +2,13 @@
 //Module fordDrawing screws
 //
 
-//Example
+//Example os use
 //uncomment next line
-screw(3, 8, 100);
+screw(m=3, h=8, $fn=100);
 //
-//1st parameter: metric diameter
-//2nd parameter: hight
-//3rd parameter: definition
+//1st parameter: screw metric diameter
+//2nd parameter: screw hight
+//3rd parameter: cylinders definition
 
 
 //array with the data for standard screws
@@ -51,15 +51,23 @@ module screw(m=3, l=8, $fn=20) {
       //step
       p=iScrew[4];
 
-      union() {
-        //draw the body of the screw
-        cylinder(d=m, h=l, center=false, $fn=$fn);
-        //draw the head of the screw
-        translate([0, 0, l]) {
-          cylinder(d=hd, h=m, center=false, $fn=$fn);
+      //allen radius
+      ar=as/sqrt(3);
+
+      difference() {
+        union() {
+          //draw the body of the screw
+          cylinder(d=m, h=l, center=false, $fn=$fn);
+          //draw the head of the screw
+          translate([0, 0, l]) {
+            cylinder(d=hd, h=m, center=false, $fn=$fn);
+          }
+        }
+        //allen hole
+        translate([0, 0, (l+m)-ad]) {
+          cylinder(d=ar*2, h=ad+1, $fn=6);
         }
       }
-
     }
   }
 }
