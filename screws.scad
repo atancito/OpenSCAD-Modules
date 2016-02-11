@@ -2,7 +2,7 @@
 //Module fordDrawing screws
 //
 
-//Example os use
+//Example of use
 //uncomment next line
 screw(m=3, h=8, $fn=100);
 //
@@ -39,7 +39,7 @@ dScrew = [
 ];
 
 module screw(m=3, l=8, $fn=20) {
-
+  //select the correct dimensions
   for (iScrew=dScrew) {
     if (iScrew[0] == m) {
       //head diameter
@@ -50,7 +50,6 @@ module screw(m=3, l=8, $fn=20) {
       ad=iScrew[3];
       //step
       p=iScrew[4];
-
       //allen radius
       ar=as/sqrt(3);
 
