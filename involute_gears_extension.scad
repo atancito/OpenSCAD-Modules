@@ -20,8 +20,6 @@ gear (
 	flat=false)             -> 
 */
 
-
-
 relacionIn = 1;     //Relacion Entrada
 relacionOut = 100;   //Relacion Salida
 invFac = 10;        //Calidad del acabado
@@ -32,52 +30,120 @@ holeOut = 5;        //Diametro taladro Salida
 grosor = 5;         //Grosor Engranajes
 //inDent = 30;      //Dientes Engranaje entrada
 //angle=0;          //Punto de union
-//ratioMaximo = 4;    
-relaciones = 3;
+relacionMaxima = 4;    
+//relaciones = 3;
 
-ratio = (relacionOut>relacionIn) ? relacionOut/relacionIn : -relacionIn/relacionOut ;
-vectRatios = [1, 2, 2];
+//ratio = (relacionOut>relacionIn) ? relacionOut/relacionIn : -relacionIn/relacionOut ;
+//vectRatios = [1, 2, 2];
 
+get_gearbox (relacionIn, relacionOut, relacionMaxima, pressAng);
 
-//get_gears(relacionIn, relacionOut);
-
-module get_gears (ratio) {
+module get_gearbox (ratioIn, ratioOut, maxRatio, presAng=28) {
     
-    for (i=vectRatios) {
+    //Ratio a conseguir
+    ratio = (ratioOut>ratioIn) ? ratioOut/ratioIn : -ratioIn/ratioOut ;
+    echo("Ratio total:");
+    echo(ratio);
     
-        raTotal = raTotal*vectRatios;
-        
+    //Numero ideal de etapas
+    etapas = log(ratio)/log(maxRatio);
+    echo("UMERO DE ETAPAS");
+    echo(etapas);
+    
+    //Numero real de etapas
+    e=redondeo_superior(etapas);
+    echo ("Numero de etapas:");
+    echo (e);
+    
+    //Numero minimo de dientes del piñon
+    zMin = (redondeo_superior(2/sin(presAng)))<10 ? 10 : redondeo_superior(2/sin(presAng)) ;
+    echo ("Minimo de dientes:");
+    echo (zMin);
+    
+    //Relacion ideal por etapa
+    relacionIdeal = pow(ratio, 1/e);
+    echo ("Relacion Ideal de cada etapa:");
+    echo (relacionIdeal);
+    
+    //Relacion maxima en una etapa
+    relacionMax = redondeo_superior(relacionIdeal);
+    echo ("Relacion maxima en una etapa:");
+    echo (relacionMax);
+    
+    //Relacion Minima en una etapa
+    relacionMin = redondeo_inferior(relacionIdeal);
+    echo ("Relacion minima en una etapa:");
+    echo (relacionMin);
+    
+    //Devuelve los decimales de la relacion ideal
+    echo("Decimales de la Relacion Ideal");
+    echo(devuelve_decimales(relacionIdeal));
+    
+    //Numero de etapas en que la relacion sera la ideal redondeada al alza
+    etapasMax = devuelve_decimales(relacionIdeal)*e;
+    echo("Etapas Arriba");
+    echo(round(etapasMax));
+    
+    //Numero de etapas en que la relacion sera la ideal redondeada a la baja
+    etapasMin = e-round(etapasMax);
+    echo("Etapas Abajo");
+    echo(etapasMin);
+    
+    //Creamos el primer engranaje
+    
+    gear (
+        involute_facets = invFac,
+        bore_diameter = holeIn,
+        pressure_angle = pressAng,
+        circular_pitch = cirPitch,
+        gear_thickness = grosor,
+        rim_thickness = grosor,
+        hub_thickness = grosor,
+        circles = 0,
+        twist = 0,
+        number_of_teeth = zMin
+    );
+    
+    //Crea los engranajes con realcion Maxima
+    for (i=[0:etapasMax-1]) {
+        echo("Creo un engranaje con relacion ", relacionMax);
     }
     
-    echo ("Ratio Total: ", raTotal);
+    //Crea los engranajes con realcion Minima
+    for (i=[0:etapasMin-1]) {
+        echo("Creo un engranaje con relacion ", relacionMin);
+    }
     
-    
-    //nuevoRatio = nuevo_ratio(ratio, 2);
-    //ratioRestante = ratio_restante (ratio, 2);
-    
-    
-    
+
+
 }
 
+//
+//Redondea un numero al alza
+//
 
-function () = (  ) ?  :  ;
+function redondeo_superior(num) = ( round(num) <= num ) ? round(num)+1 : round(num) ;
 
-function ratio_restante (ratio, ratioDiv) = ( round(ratio/ratioDiv)-(ratio/ratioDiv) == 0 ) ? ratio/ratioDiv : ratio_restante (ratio, ratioDiv+1) ;
+//
+//Redondea un numero a la baja
+//
 
-function nuevo_ratio (ratio, ratioDiv) = ( round(ratio/ratioDiv)-(ratio/ratioDiv) == 0 ) ? ratioDiv : nuevo_ratio (ratio, ratioDiv+1) ;
+function redondeo_inferior(num) = ( round(num) > num ) ? round(num)-1 : round(num) ;
 
-
-
+//
+//Devuelve los decimales
+//
+function devuelve_decimales(num) = ( round(num) >= num ) ? round(num)-num : num-round(num);
 
 //////////////////////////////////////////////////
 //
-//         ---Modulo double_gear---
+//         --- Modulo double_gear ---
 //
 //         Crea un engranaje doble
 //
 //////////////////////////////////////////////////
 
-//---Ejemplo
+//--- Ejemplo ---
 //
 //double_gear();
 //
@@ -139,14 +205,14 @@ module double_gear(
 
 //////////////////////////////////////////////////
 //
-//       ---Modulo simple gear_set---
+//       --- Modulo simple gear_set ---
 //
 //  Crea un juego de dos engranajes con la
 //  relacion y el punto de union especificados
 //
 //////////////////////////////////////////////////
 
-//---Ejemplo
+//--- Ejemplo ---
 //
 //simple_gear_set(angle=0);
 //
@@ -211,24 +277,28 @@ module simple_gear_set(
 }
 
 //
-//Calcula la distancia entre dos engranajes
+//--- Calcula la distancia entre dos engranajes
 //
-function gear_distance(z1, z2, cp) = (((z1*cp)/360)+((z2*cp)/360));
 
-//
-//Crea un engranaje con un diente o hueco orientado
-//en la direccion especificada por el parametro alfa       
-//
+function gear_distance(z1, z2, cp) = (((z1*cp)/360)+((z2*cp)/360));
 
 
 ///////////////////////////////////////////////////////////////
 //
-//              ---Modulo gear_rotated---
+//              --- Modulo gear_rotated ---
 //
 //  Crea un engranaje con un diente o hueco orientado
 //  en la direccion especificada por el parametro alfa
 //
 //////////////////////////////////////////////////////////////
+
+//
+//--- Ejemplo ---
+//
+//gear_rotated();
+//
+
+
 module gear_rotated(
     gearRotated = [
     10,         //involute_facets
